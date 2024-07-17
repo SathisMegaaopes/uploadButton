@@ -6,6 +6,7 @@ const cors = require('cors')
 
 const app = express()
 app.use(bodypaser.json())
+app.use(bodypaser.urlencoded({ extended: true }));
 app.use(cors())
 const path = require('path');
 const fs = require('fs');
@@ -25,29 +26,16 @@ const fs = require('fs');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        console.log(req.body,'this is you want da')
-
-        // const uploadPath = 'uploads/';
-
-        // if (!fs.existsSync(uploadPath)) {
-        //     fs.mkdirSync(uploadPath);
-        // }
 
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear().toString();
         const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
         const yearFolder = path.join(__dirname, currentYear)
         const monthFolder = path.join(yearFolder, currentMonth)
+        const fileFolder = path.join(monthFolder, 'filesFolder')
+        const imagesFolder = path.join(monthFolder, 'imagesFolder')
 
-
-        // if (!fs.existsSync(yearPath)) {
-        //     try {
-        //         fs.mkdirSync(yearPath);
-        //     } catch (err) {
-        //         cb(err);
-        //         return;
-        //     }
-        // }
+        console.log(file.mimetype, 'this is tooo important')
 
         fs.access(yearFolder, fs.constants.F_OK, (yearErr) => {
             if (yearErr) {
@@ -57,33 +45,44 @@ const storage = multer.diskStorage({
                 if (monthErr) {
                     return res.status(400).json({ error: `Month folder ${currentMonth} does not exist.` });
                 }
-                const yearMonthPath = path.join(monthFolder);
-                console.log(yearMonthPath)
-                cb(null, yearMonthPath);
-                console.log('File is added to the directory sathis')
+
+                if (file.mimetype == 'application/vnd.ms-excel' ||
+                    file.mimetype == 'application/pdf' ||
+                    file.mimetype == 'application/msword') {
+                    fs.access(fileFolder, fs.constants.F_OK, (folderErr) => {
+                        if (folderErr) {
+                            console.log('The File folder is missing')
+                        }
+                        const yearMonthImagePath = path.join(fileFolder);
+                        console.log(yearMonthImagePath)
+                        cb(null, yearMonthImagePath);
+                    })
+                } else if (file.mimetype == 'image/jpeg' || file.mimetype == 'image/png') {
+                    fs.access(imagesFolder, fs.constants.F_OK, (folderErr) => {
+                        if (folderErr) {
+                            console.log('The Image folder is missing')
+                        }
+                        const yearMonthImagePath = path.join(imagesFolder);
+                        console.log(yearMonthImagePath)
+                        cb(null, yearMonthImagePath);
+                    })
+                }
+
             });
 
         })
-
-        // if (!fs.existsSync(yearMonthPath)) {
-        //     fs.mkdirSync(yearMonthPath, { recursive: true });
-        // }
     },
     filename: function (req, file, cb) {
-        // cons
-        cb(null, file.originalname); // You can modify the filename if needed
+        cb(null, file.originalname);
     }
 });
 
 
 const upload = multer({ storage });
 
-
 app.post('/', upload.single('file'), (req, res) => {
     try {
-        // console.log(req.body, 'it is the body details')
-        const { id, type } = req.body
-        // console.log(req.file);
+        // console.log(req.body)
         res.status(200).send(`File uploaded successfully ${req.file.filename}`);
     } catch (err) {
         console.error(err);
@@ -92,12 +91,6 @@ app.post('/', upload.single('file'), (req, res) => {
 });
 
 app.get('/', (req, res) => {
-
-    // console.log(currentDate)
-    // console.log(currentYear)
-    // console.log(currentMonth)
-    // console.log(currentMonth2)
-
     res.send('the server is getted')
 })
 

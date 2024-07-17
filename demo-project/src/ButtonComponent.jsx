@@ -14,17 +14,20 @@ const Input = styled('input')({
 const UploadButtons = () => {
 
     const [type, setType] = useState('')
-    const [ID, setID] = useState()
+    const [ID, setID] = useState('')
     const handleFileUpload = async (event) => {
         console.log('the function is triggered')
 
         const selectedFile = event.target.files[0];
         console.log(selectedFile.name)
 
+        const newFilename = `${ID}_${selectedFile.name}`;
+
         const formData = new FormData();
-        formData.append('file', selectedFile);
+        formData.append('file', selectedFile, newFilename);
         formData.append('id', ID)
         formData.append('type', type)
+        // setID('')
 
         console.log(type)
 
@@ -40,6 +43,7 @@ const UploadButtons = () => {
                 .catch(error => {
                     console.error(error);
                 });
+
         } catch (error) {
             console.error('Error uploading file:', error);
             alert('Failed to upload file.');
