@@ -3,7 +3,6 @@ import Button from '@mui/material/Button';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ImageIcon from '@mui/icons-material/Image';
 import { styled } from '@mui/material/styles';
-// import Input from '@mui/joy/Input';
 import axios from 'axios';
 
 const Input = styled('input')({
@@ -15,23 +14,26 @@ const UploadButtons = () => {
 
     const [type, setType] = useState('')
     const [ID, setID] = useState('')
+
     const handleFileUpload = async (event) => {
-        console.log('the function is triggered')
+
+        if(!ID){
+            console.log('The id missing')
+            return;
+        }
 
         const selectedFile = event.target.files[0];
-        console.log(selectedFile.name)
-
-        const newFilename = `${ID}_${selectedFile.name}`;
 
         const formData = new FormData();
-        formData.append('file', selectedFile, newFilename);
+
+        formData.append('file', selectedFile);
         formData.append('id', ID)
         formData.append('type', type)
-        // setID('')
 
-        console.log(type)
 
         try {
+
+            // console.log(formData,'this is the formData buddy')
             const response = await axios.post('http://localhost:5000/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -44,10 +46,14 @@ const UploadButtons = () => {
                     console.error(error);
                 });
 
-        } catch (error) {
-            console.error('Error uploading file:', error);
-            alert('Failed to upload file.');
         }
+        catch (error) {
+
+            console.error('An error occurred:', error.message);
+
+        }
+
+
     };
 
     const handleImageUpload = (event) => {
@@ -63,6 +69,7 @@ const UploadButtons = () => {
                     type="file"
                     onChange={handleFileUpload}
                 />
+
                 <Button
                     variant="contained"
                     component="span"
@@ -82,6 +89,7 @@ const UploadButtons = () => {
                     type="file"
                     onChange={handleFileUpload}
                 />
+
                 <Button
                     variant="contained"
                     component="span"
@@ -91,7 +99,8 @@ const UploadButtons = () => {
                     Upload Image
                 </Button>
             </label>
-            {/* <input /> */}
+
+
             <input
                 color="success"
                 placeholder="Enter the ID"
